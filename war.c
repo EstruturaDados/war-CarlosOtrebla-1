@@ -47,12 +47,30 @@
 int main()
 {
 
+  //------- Constantes globais---------
+    const int MAX_TERRITORIOS = 5;
+    int NUM_TERRITORIOS = 5;
+
     typedef struct territorio
     {
         char nome[50];
         char corExercito[20];
         int numTropas;
     } Territorio;
+
+    int contTerritorios = 0;
+
+    do {
+      printf("Vamos cadastrar os %d territórios iniciais do nosso jogo:\n", NUM_TERRITORIOS);
+
+      printf("Digite o nome do território %d: ", contTerritorios + 1);
+      scanf("%s", Territorio.nome);
+      printf("Digite a cor do exército do território %d: ", contTerritorios + 1);
+      scanf("%s", Territorio.corExercito);
+      printf("Digite o número de tropas do território %d: ", contTerritorios + 1);
+      scanf("%d", &Territorio.numTropas);
+      contTerritorios++;
+    } while (contTerritorios < NUM_TERRITORIOS); // Condição de término do jogo (exemplo).
 
     // 1. Configuração Inicial (Setup):
   // - Define o locale para português.
