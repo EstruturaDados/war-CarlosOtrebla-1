@@ -1,7 +1,7 @@
 // ============================================================================
 //         PROJETO WAR ESTRUTURADO - DESAFIO DE CÓDIGO
 // ============================================================================
-//        
+//
 // ============================================================================
 //
 // OBJETIVOS:
@@ -32,12 +32,19 @@
 // --- Função Principal (main) ---
 // Função principal que orquestra o fluxo do jogo, chamando as outras funções em ordem.
 
-# include <stdio.h>
-# include <stdlib.h>
-# include <string.h>
-int main() {
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+int main()
+{
 
-    printf("Olá Mundo");
+    define struct territorio
+    {
+        char nome[50];
+        char corExercito[20];
+        int numTropas;
+    } Territorio;
+
     // 1. Configuração Inicial (Setup):
     // - Define o locale para português.
     // - Inicializa a semente para geração de números aleatórios com base no tempo atual.
