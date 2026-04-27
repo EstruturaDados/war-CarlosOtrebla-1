@@ -41,13 +41,13 @@ typedef struct missao {
 void imprimirStringUTF8Alinhada(const char *str, int largura);
 Territorio *alocarMapa(); 
 void liberarMemoria(Territorio *mapa);
-void inicializarTerritorios(Territorio *mapa, int *contTerritorios);
+int inicializarTerritorios(Territorio *mapa, int *contTerritorios);
 void exibirMapa(const Territorio *mapa, int contTerritorios);
 int exibirMenuPrincipal(int contTerritorios);
 Missao sortearMissao();
 int verificarVitoria(const Territorio *mapa, int contTerritorios,
-                     Missao missao);
-void faseDeAtaque(Territorio *mapa, int contTerritorios);
+                     Missao missao, const char *corJogador);
+void faseDeAtaque(Territorio *mapa, int contTerritorios, const char *corJogador);
 void simularAtaque(Territorio *atacante, Territorio *defensor);
 
 int main() {
@@ -64,59 +64,73 @@ int main() {
   }
 
   int contTerritorios = 0;
+  int sairPrograma = 0;
 
-  inicializarTerritorios(mapa, &contTerritorios);
+  while (!sairPrograma) {
+    int opcaoMenu = inicializarTerritorios(mapa, &contTerritorios);
 
-  if (contTerritorios < 2) {
-    liberarMemoria(mapa);
-    return 0;
-  }
-
-  Missao missao = sortearMissao();
-  printf("\n\x1b[32mSua missao secreta:\x1b[0m %s\n", missao.descricao);
-
-  int opcaoJogo = 0;
-  do {
-    exibirMapa(mapa, contTerritorios);
-
-    printf("\n════════════════ O QUE DESEJA FAZER? ════════════════\n");
-    printf(" 1 - Atacar um territorio\n");
-    printf(" 2 - Verificar se venci\n");
-    printf(" 0 - Sair do jogo\n");
-    printf(" ╚══> Escolha: ");
-
-    if (scanf("%d", &opcaoJogo) != 1) {
-      while (getchar() != '\n')
-        ;
+    if (opcaoMenu == 0) {
+      sairPrograma = 1;
       continue;
     }
-    while (getchar() != '\n')
-      ;
 
-    switch (opcaoJogo) {
-    case 1:
-      faseDeAtaque(mapa, contTerritorios);
-      break;
-    case 2:
-      if (verificarVitoria(mapa, contTerritorios, missao)) {
-        printf("\n\x1b[32m====================================================="
-               "\x1b[0m\n");
-        printf("\x1b[32m  PARABENS! VOCE CUMPRIU SUA MISSAO E VENCEU O JOGO! "
-               "\x1b[0m\n");
-        printf("\x1b[32m====================================================="
-               "\x1b[0m\n");
-        opcaoJogo = 0;
-      } else {
-        printf("\n\x1b[33mAinda nao... Continue conquistando!\x1b[0m\n");
-      }
-      break;
-    case 0:
-      printf("\nFim de jogo.\n");
-      break;
-    default:
-      printf("\nOpcao invalida!\n");
+    if (contTerritorios < 2) {
+      continue;
     }
-  } while (opcaoJogo != 0);
+
+    char corJogador[20];
+    printf("\nPara qual Exercito (Cor) voce vai jogar? ");
+    fgets(corJogador, sizeof(corJogador), stdin);
+    corJogador[strcspn(corJogador, "\n")] = 0;
+
+    Missao missao = sortearMissao();
+    printf("\n\x1b[32mSua missao secreta:\x1b[0m %s\n", missao.descricao);
+
+    int opcaoJogo = 0;
+    do {
+      exibirMapa(mapa, contTerritorios);
+
+      printf("\n════════════════ O QUE DESEJA FAZER? ════════════════\n");
+      printf(" 1 - Atacar um territorio\n");
+      printf(" 2 - Verificar se venci\n");
+      printf(" 3 - Voltar ao Menu Principal\n");
+      printf(" 0 - Sair do jogo\n");
+      printf(" ╚══> Escolha: ");
+
+      if (scanf("%d", &opcaoJogo) != 1) {
+        while (getchar() != '\n')
+          ;
+        continue;
+      }
+      while (getchar() != '\n')
+        ;
+
+      switch (opcaoJogo) {
+      case 1:
+        faseDeAtaque(mapa, contTerritorios, corJogador);
+        break;
+      case 2:
+        if (verificarVitoria(mapa, contTerritorios, missao, corJogador)) {
+          printf("\n\x1b[32m=====================================================\x1b[0m\n");
+          printf("\x1b[32m  PARABENS! VOCE CUMPRIU SUA MISSAO E VENCEU O JOGO! \x1b[0m\n");
+          printf("\x1b[32m=====================================================\x1b[0m\n");
+          opcaoJogo = 3;
+        } else {
+          printf("\n\x1b[33mAinda nao... Continue conquistando!\x1b[0m\n");
+        }
+        break;
+      case 3:
+        printf("\nVoltando ao Menu Principal...\n");
+        break;
+      case 0:
+        printf("\nSaindo...\n");
+        sairPrograma = 1;
+        break;
+      default:
+        printf("\nOpcao invalida!\n");
+      }
+    } while (opcaoJogo != 0 && opcaoJogo != 3);
+  }
 
   liberarMemoria(mapa);
 
@@ -153,7 +167,7 @@ int exibirMenuPrincipal(int contTerritorios) {
   return opcao;
 }
 
-void inicializarTerritorios(Territorio *mapa, int *contTerritorios) {
+int inicializarTerritorios(Territorio *mapa, int *contTerritorios) {
   int opcao = 0;
   do {
     opcao = exibirMenuPrincipal(*contTerritorios);
@@ -227,6 +241,7 @@ void inicializarTerritorios(Territorio *mapa, int *contTerritorios) {
         }
         printf("\nCadastro concluido! Total de territorios: %d/%d\n",
                *contTerritorios, MAX_TERRITORIOS);
+        exibirMapa(mapa, *contTerritorios);
       } else {
         printf("\n\x1b[33m[AVISO] Limite de %d territorios atingido!\x1b[0m\n",
                MAX_TERRITORIOS);
@@ -256,11 +271,12 @@ void inicializarTerritorios(Territorio *mapa, int *contTerritorios) {
       break;
     }
   } while (opcao != 0 && opcao != 3);
+  return opcao;
 }
 
 void exibirMapa(const Territorio *mapa, int contTerritorios) {
   if (contTerritorios == 0) {
-    printf("\nNenhum territorio cadastrado ainda.\n");
+    printf("\n\x1b[33m[AVISO] Nenhum territorio cadastrado ainda.\x1b[0m\n");
     return;
   }
   printf("\n══════════════════ Lista de Territorios ══════════════════\n");
@@ -283,18 +299,20 @@ Missao sortearMissao() {
 }
 
 int verificarVitoria(const Territorio *mapa, int contTerritorios,
-                     Missao missao) {
+                     Missao missao, const char *corJogador) {
   if (missao.id == 1) {
     // Conquistar 1 territorio com pelo menos 5 tropas
     for (int i = 0; i < contTerritorios; i++) {
-      if (mapa[i].numTropas >= missao.quantidadeObjetivo) {
+      if (strcmp(mapa[i].corExercito, corJogador) == 0 && mapa[i].numTropas >= missao.quantidadeObjetivo) {
         return 1;
       }
     }
   } else if (missao.id == 2) {
     int somaTropas = 0;
     for (int i = 0; i < contTerritorios; i++) {
-      somaTropas += mapa[i].numTropas;
+      if (strcmp(mapa[i].corExercito, corJogador) == 0) {
+        somaTropas += mapa[i].numTropas;
+      }
     }
     if (somaTropas >= missao.quantidadeObjetivo) {
       return 1;
@@ -303,7 +321,7 @@ int verificarVitoria(const Territorio *mapa, int contTerritorios,
   return 0;
 }
 
-void faseDeAtaque(Territorio *mapa, int contTerritorios) {
+void faseDeAtaque(Territorio *mapa, int contTerritorios, const char *corJogador) {
   if (contTerritorios < 2)
     return;
 
@@ -330,6 +348,11 @@ void faseDeAtaque(Territorio *mapa, int contTerritorios) {
 
   Territorio *atacante = &mapa[idOrigem - 1];
   Territorio *defensor = &mapa[idDestino - 1];
+
+  if (strcmp(atacante->corExercito, corJogador) != 0) {
+    printf("\x1b[31m[ERRO] Voce so pode atacar a partir de um territorio da sua cor (%s)!\x1b[0m\n", corJogador);
+    return;
+  }
 
   if (atacante->numTropas <= 1) {
     printf("\x1b[33m[AVISO] Voce precisa de pelo menos 2 tropas para poder "
@@ -361,7 +384,7 @@ void simularAtaque(Territorio *atacante, Territorio *defensor) {
 
   if (defensor->numTropas <= 0) {
     printf("\n\x1b[32m*** TERRITORIO CONQUISTADO! ***\x1b[0m\n");
-    printf("O exercito %s dominou %s!\n", atacante->corExercito,
+    printf("O exercito %s dominou %s e moveu 1 tropa para ocupa-lo!\n", atacante->corExercito,
            defensor->nome);
     strcpy(defensor->corExercito, atacante->corExercito);
     defensor->numTropas = 1;
