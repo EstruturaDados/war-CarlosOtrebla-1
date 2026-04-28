@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-const int MAX_TERRITORIOS = 5;
-
 Territorio *alocarMapa() {
   Territorio *mapa = (Territorio *)calloc(MAX_TERRITORIOS, sizeof(Territorio));
   return mapa;
