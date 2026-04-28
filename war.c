@@ -39,15 +39,16 @@ typedef struct missao {
 
 //-----------Protótipos----------
 void imprimirStringUTF8Alinhada(const char *str, int largura);
-Territorio *alocarMapa(); 
-void liberarMemoria(Territorio *mapa);
+Territorio *alocarMapa();
+void liberarMemoria(Territorio **mapa);
 int inicializarTerritorios(Territorio *mapa, int *contTerritorios);
 void exibirMapa(const Territorio *mapa, int contTerritorios);
 int exibirMenuPrincipal(int contTerritorios);
 Missao sortearMissao();
-int verificarVitoria(const Territorio *mapa, int contTerritorios,
-                     Missao missao, const char *corJogador);
-void faseDeAtaque(Territorio *mapa, int contTerritorios, const char *corJogador);
+int verificarVitoria(const Territorio *mapa, int contTerritorios, Missao missao,
+                     const char *corJogador);
+void faseDeAtaque(Territorio *mapa, int contTerritorios,
+                  const char *corJogador);
 void simularAtaque(Territorio *atacante, Territorio *defensor);
 
 int main() {
@@ -111,9 +112,12 @@ int main() {
         break;
       case 2:
         if (verificarVitoria(mapa, contTerritorios, missao, corJogador)) {
-          printf("\n\x1b[32m=====================================================\x1b[0m\n");
-          printf("\x1b[32m  PARABÉNS! VOCÊ CUMPRIU SUA MISSÃO E VENCEU O JOGO! \x1b[0m\n");
-          printf("\x1b[32m=====================================================\x1b[0m\n");
+          printf("\n\x1b[32m==================================================="
+                 "==\x1b[0m\n");
+          printf("\x1b[32m  PARABÉNS! VOCÊ CUMPRIU SUA MISSÃO E VENCEU O JOGO! "
+                 "\x1b[0m\n");
+          printf("\x1b[32m====================================================="
+                 "\x1b[0m\n");
           opcaoJogo = 3;
         } else {
           printf("\n\x1b[33mAinda não... Continue conquistando!\x1b[0m\n");
@@ -132,7 +136,7 @@ int main() {
     } while (opcaoJogo != 0 && opcaoJogo != 3);
   }
 
-  liberarMemoria(mapa);
+  liberarMemoria(&mapa);
 
   return 0;
 }
@@ -144,7 +148,12 @@ Territorio *alocarMapa() {
   return mapa;
 }
 
-void liberarMemoria(Territorio *mapa) { free(mapa); }
+void liberarMemoria(Territorio **mapa) {
+  if (*mapa != NULL) {
+    free(*mapa);
+    *mapa = NULL;
+  }
+}
 
 int exibirMenuPrincipal(int contTerritorios) {
   int opcao = 0;
@@ -279,13 +288,17 @@ void exibirMapa(const Territorio *mapa, int contTerritorios) {
     printf("\n\x1b[33m[AVISO] Nenhum território cadastrado ainda.\x1b[0m\n");
     return;
   }
-  printf("\n══════════════════ Lista de Territórios ══════════════════\n");
+  printf("\n══════════════ M A P A   D O   M U N D O ══════════════\n");
+  printf("%-5s | %-20s | ", "ID", "Nome");
+  imprimirStringUTF8Alinhada("Exército", 15);
+  printf(" | %-10s\n", "Tropas");
+  printf("══════════════════════════════════════════════════════════\n");
   for (int i = 0; i < contTerritorios; i++) {
-    printf("|%d| Nome: ", i + 1);
-    imprimirStringUTF8Alinhada(mapa[i].nome, 15);
-    printf(" | Cor: ");
-    imprimirStringUTF8Alinhada(mapa[i].corExercito, 12);
-    printf(" | Tropas: %2d\n", mapa[i].numTropas);
+    printf("%-5d | ", i + 1);
+    imprimirStringUTF8Alinhada(mapa[i].nome, 20);
+    printf(" | ");
+    imprimirStringUTF8Alinhada(mapa[i].corExercito, 15);
+    printf(" | %-10d\n", mapa[i].numTropas);
   }
   printf("══════════════════════════════════════════════════════════\n");
 }
@@ -298,12 +311,13 @@ Missao sortearMissao() {
   return missoes[sorteio];
 }
 
-int verificarVitoria(const Territorio *mapa, int contTerritorios,
-                     Missao missao, const char *corJogador) {
+int verificarVitoria(const Territorio *mapa, int contTerritorios, Missao missao,
+                     const char *corJogador) {
   if (missao.id == 1) {
     // Conquistar 1 territorio com pelo menos 5 tropas
     for (int i = 0; i < contTerritorios; i++) {
-      if (strcmp(mapa[i].corExercito, corJogador) == 0 && mapa[i].numTropas >= missao.quantidadeObjetivo) {
+      if (strcmp(mapa[i].corExercito, corJogador) == 0 &&
+          mapa[i].numTropas >= missao.quantidadeObjetivo) {
         return 1;
       }
     }
@@ -321,17 +335,17 @@ int verificarVitoria(const Territorio *mapa, int contTerritorios,
   return 0;
 }
 
-void faseDeAtaque(Territorio *mapa, int contTerritorios, const char *corJogador) {
+void faseDeAtaque(Territorio *mapa, int contTerritorios,
+                  const char *corJogador) {
   if (contTerritorios < 2)
     return;
 
   int idOrigem, idDestino;
   printf("\n--- FASE DE ATAQUE ---\n");
   exibirMapa(mapa, contTerritorios);
-
-  printf("Digite o número do seu território (Origem): ");
+  printf("Digite o número do seu território (Atacante): ");
   scanf("%d", &idOrigem);
-  printf("Digite o número do território alvo (Destino): ");
+  printf("Digite o número do território alvo (Defensor): ");
   scanf("%d", &idDestino);
   while (getchar() != '\n')
     ;
@@ -350,7 +364,9 @@ void faseDeAtaque(Territorio *mapa, int contTerritorios, const char *corJogador)
   Territorio *defensor = &mapa[idDestino - 1];
 
   if (strcmp(atacante->corExercito, corJogador) != 0) {
-    printf("\x1b[31m[ERRO] Você só pode atacar a partir de um território da sua cor (%s)!\x1b[0m\n", corJogador);
+    printf("\x1b[31m[ERRO] Você só pode atacar a partir de um território da "
+           "sua cor (%s)!\x1b[0m\n",
+           corJogador);
     return;
   }
 
@@ -376,16 +392,18 @@ void simularAtaque(Territorio *atacante, Territorio *defensor) {
 
   if (dadoAtaque > dadoDefesa) {
     printf("\x1b[32m>>> Atacante VENCEU a rodada! <<<\x1b[0m\n");
+    printf("\x1b[32m>>> Defensor PERDEU 1 tropa! <<<\x1b[0m\n");
     defensor->numTropas--;
   } else {
     printf("\x1b[31m>>> Defensor VENCEU a rodada! <<<\x1b[0m\n");
+    printf("\x1b[31m>>> Atacante PERDEU 1 tropa! <<<\x1b[0m\n");
     atacante->numTropas--;
   }
 
   if (defensor->numTropas <= 0) {
     printf("\n\x1b[32m*** TERRITÓRIO CONQUISTADO! ***\x1b[0m\n");
-    printf("O exército %s dominou %s e moveu 1 tropa para ocupá-lo!\n", atacante->corExercito,
-           defensor->nome);
+    printf("O exército %s dominou %s e moveu 1 tropa para ocupá-lo!\n",
+           atacante->corExercito, defensor->nome);
     strcpy(defensor->corExercito, atacante->corExercito);
     defensor->numTropas = 1;
     atacante->numTropas--;
