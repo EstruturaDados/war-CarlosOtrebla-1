@@ -1,6 +1,16 @@
+#include "interface.h"
 #include <stdio.h>
 #include <string.h>
-#include "interface.h"
+
+int lerInteiro(int *destino) {
+  char buffer[50];
+  if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+    if (sscanf(buffer, "%d", destino) == 1) {
+      return 1; // Sucesso
+    }
+  }
+  return 0; // Falha
+}
 
 int exibirMenuPrincipal(int contTerritorios) {
   int opcao = 0;
@@ -15,11 +25,9 @@ int exibirMenuPrincipal(int contTerritorios) {
   printf(" ║   \n");
   printf(" ╚══> Escolha uma opção acima: ");
 
-  if (scanf("%d", &opcao) != 1) {
+  if (!lerInteiro(&opcao)) {
     opcao = -1;
   }
-  while (getchar() != '\n')
-    ;
   return opcao;
 }
 
@@ -37,10 +45,8 @@ int inicializarTerritorios(Territorio *mapa, int *contTerritorios) {
         printf("\nTerritórios disponíveis: %d/%d\n", territoriosDisponiveis,
                MAX_TERRITORIOS);
         printf("Quantos territórios deseja cadastrar agora? ");
-        if (scanf("%d", &qtdParaCadastrar) != 1)
+        if (!lerInteiro(&qtdParaCadastrar))
           qtdParaCadastrar = 0;
-        while (getchar() != '\n')
-          ;
 
         if (qtdParaCadastrar <= 0 ||
             qtdParaCadastrar > territoriosDisponiveis) {
@@ -86,10 +92,8 @@ int inicializarTerritorios(Territorio *mapa, int *contTerritorios) {
               0;
 
           printf("Número de tropas: ");
-          if (scanf("%d", &mapa[*contTerritorios].numTropas) != 1)
+          if (!lerInteiro(&mapa[*contTerritorios].numTropas))
             mapa[*contTerritorios].numTropas = 1;
-          while (getchar() != '\n')
-            ;
 
           (*contTerritorios)++;
           contBatch++;

@@ -72,13 +72,9 @@ int main() {
       printf(" 0 - Sair do jogo\n");
       printf(" ╚══> Escolha: ");
 
-      if (scanf("%d", &opcaoJogo) != 1) {
-        while (getchar() != '\n')
-          ;
+      if (!lerInteiro(&opcaoJogo)) {
         continue;
       }
-      while (getchar() != '\n')
-        ;
 
       switch (opcaoJogo) {
       case 1:

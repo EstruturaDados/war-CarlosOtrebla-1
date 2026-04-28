@@ -53,15 +53,13 @@ void faseDeAtaque(Territorio *mapa, int contTerritorios,
   if (contTerritorios < 2)
     return;
 
-  int idOrigem, idDestino;
+  int idOrigem = 0, idDestino = 0;
   printf("\n--- FASE DE ATAQUE ---\n");
   exibirMapa(mapa, contTerritorios);
   printf("Digite o número do seu território (Atacante): ");
-  scanf("%d", &idOrigem);
+  lerInteiro(&idOrigem);
   printf("Digite o número do território alvo (Defensor): ");
-  scanf("%d", &idDestino);
-  while (getchar() != '\n')
-    ;
+  lerInteiro(&idDestino);
 
   if (idOrigem < 1 || idOrigem > contTerritorios || idDestino < 1 ||
       idDestino > contTerritorios) {
@@ -117,7 +115,9 @@ void simularAtaque(Territorio *atacante, Territorio *defensor) {
     printf("\n\x1b[32m*** TERRITÓRIO CONQUISTADO! ***\x1b[0m\n");
     printf("O exército %s dominou %s e moveu 1 tropa para ocupá-lo!\n",
            atacante->corExercito, defensor->nome);
-    strcpy(defensor->corExercito, atacante->corExercito);
+    strncpy(defensor->corExercito, atacante->corExercito,
+            sizeof(defensor->corExercito) - 1);
+    defensor->corExercito[sizeof(defensor->corExercito) - 1] = '\0';
     defensor->numTropas = 1;
     atacante->numTropas--;
   }
